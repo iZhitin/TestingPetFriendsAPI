@@ -4,7 +4,7 @@ from requirements import *
 pf = PetFriends()
 
 
-# получаем ключ авторизации
+# получаем ключ авторизации, доступный в каждом тесте
 @pytest.fixture(autouse=True)
 def auth_key_api():
     global auth_key
@@ -21,6 +21,7 @@ def time_delta(request):
     print (f"\nТест {request.function.__name__} длился: {end_time - start_time}")
 
 
+# параметризация - один тест на несколько тестовых данных
 @pytest.mark.parametrize("filter_",
                         [
                             generate_string(255)
@@ -42,7 +43,7 @@ def time_delta(request):
                             , 'digit'
                         ])
 def test_get_all_pets_with_negative_filter(filter_):
-    """ Негативные тесты на получение списка питомцев с различными параметрами пути """
+    """Негативные тесты на получение списка питомцев с различными параметрами пути"""
     status, result, res = pf.get_list_of_pets(auth_key, filter_)
     # сервер корректно обрабатывает запросы и возвращает 400 код
     assert status == 400
@@ -53,7 +54,7 @@ def test_get_all_pets_with_negative_filter(filter_):
                         ['', 'my_pets'],
                         ids=['empty string', 'only my pets'])
 def test_get_all_pets_with_positive_filter(filter_):
-    """ Позитивные тесты на получение списка питомцев с различными параметрами пути """
+    """Позитивные тесты на получение списка питомцев с различными параметрами пути """
     status, result, res = pf.get_list_of_pets(auth_key, filter_)
     assert status == 200
     assert len(result['pets']) > 0

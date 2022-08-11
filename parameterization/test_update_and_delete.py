@@ -4,7 +4,7 @@ from requirements import *
 pf = PetFriends()
 
 
-# получаем ключ авторизации
+# получаем ключ авторизации, доступный в каждом тесте
 @pytest.fixture(autouse=True)
 def auth_key_api():
     global auth_key
@@ -21,18 +21,25 @@ def time_delta(request):
     print (f"\nТест {request.function.__name__} длился: {end_time - start_time}")
 
 
+# параметризация - один тест на несколько тестовых данных
+# функция generate_string(n) генерирует строку длиной n
 @pytest.mark.parametrize("name"
-   , [generate_string(255), generate_string(1001), russian_chars(), russian_chars().upper(), chinese_chars(),
+   , [generate_string(255), generate_string(1001), russian_chars(),
+      russian_chars().upper(), chinese_chars(),
       special_chars(), '123']
-   , ids=['255 symbols', 'more than 1000 symbols', 'russian', 'RUSSIAN', 'chinese', 'specials', 'digit'])
+   , ids=['255 symbols', 'more than 1000 symbols', 'russian',
+          'RUSSIAN', 'chinese', 'specials', 'digit'])
 @pytest.mark.parametrize("animal_type"
-   , [generate_string(255), generate_string(1001), russian_chars(), russian_chars().upper(), chinese_chars(),
+   , [generate_string(255), generate_string(1001), russian_chars(),
+      russian_chars().upper(), chinese_chars(),
       special_chars(), '123']
-   , ids=['255 symbols', 'more than 1000 symbols', 'russian', 'RUSSIAN', 'chinese', 'specials', 'digit'])
+   , ids=['255 symbols', 'more than 1000 symbols', 'russian',
+          'RUSSIAN', 'chinese', 'specials', 'digit'])
 @pytest.mark.parametrize("age", ['1'], ids=['min'])
 def test_successful_update_self_pet_info(name, animal_type, age):
     """Позитивные кейсы обновления информации"""
-    # получаем ключ auth_key и список своих питомцев
+    # обращаемся к методу класса из файла api, передав ключ авторизации из фикстуры
+    # и получаем список своих питомцев
     _, my_pets, _ = pf.get_list_of_pets(auth_key, "my_pets")
     # если список не пустой, то пробуем обновить его имя, тип и возраст
     if len(my_pets['pets']) > 0:
@@ -49,13 +56,15 @@ def test_successful_update_self_pet_info(name, animal_type, age):
 @pytest.mark.parametrize("name", [''], ids=['empty'])
 @pytest.mark.parametrize("animal_type", [''], ids=['empty'])
 @pytest.mark.parametrize("age",
-                        ['', '-1', '0', '100', '1.5', '2147483647', '2147483648', special_chars(), russian_chars(),
+                        ['', '-1', '0', '100', '1.5', '2147483647', '2147483648',
+                         special_chars(), russian_chars(),
                          russian_chars().upper(), chinese_chars()]
-   , ids=['empty', 'negative', 'zero', 'greater than max', 'float', 'int_max', 'int_max + 1', 'specials',
-          'russian', 'RUSSIAN', 'chinese'])
+   , ids=['empty', 'negative', 'zero', 'greater than max', 'float', 'int_max',
+          'int_max + 1', 'specials', 'russian', 'RUSSIAN', 'chinese'])
 def test_unsuccessful_update_self_pet_info(name, animal_type, age):
     """Негативные кейсы обновления информации"""
-    # получаем ключ auth_key и список своих питомцев
+    # обращаемся к методу класса из файла api, передав ключ авторизации из фикстуры
+    # и получаем список своих питомцев
     _, my_pets, _ = pf.get_list_of_pets(auth_key, "my_pets")
     # если список не пустой, то пробуем обновить его имя, тип и возраст
     if len(my_pets['pets']) > 0:
@@ -68,17 +77,18 @@ def test_unsuccessful_update_self_pet_info(name, animal_type, age):
         # если список питомцев пустой, то выкидываем исключение с текстом об отсутствии своих питомцев
         raise Exception("There is no my pets")
 
-#тут не подобрать очевидным параметров
+
+# тут не подобрать очевидных параметров
 def test_successful_delete_self_pet():
     """Проверяем возможность удаления питомца"""
-    # получаем ключ auth_key и запрашиваем список своих питомцев
+    # обращаемся к методу класса из файла api, передав ключ авторизации из фикстуры
+    # и получаем список своих питомцев
     _, my_pets, _ = pf.get_list_of_pets(auth_key, "my_pets")
     # проверяем - если список своих питомцев пустой, то добавляем нового и опять запрашиваем список своих питомцев
     if len(my_pets['pets']) == 0:
         pf.add_new_pet(auth_key, "Суперкот", "кот", "3", "images/cat1.jpg")
         _, my_pets, _ = pf.get_list_of_pets(auth_key, "my_pets")
     # берём id первого питомца из списка и отправляем запрос на удаление
-    # везде добавим res
     pet_id = my_pets['pets'][0]['id']
     status, _, res = pf.delete_pet(auth_key, pet_id)
     # ещё раз запрашиваем список своих питомцев

@@ -4,7 +4,7 @@ from requirements import *
 pf = PetFriends()
 
 
-# получаем ключ авторизации
+# получаем ключ авторизации, доступный в каждом тесте
 @pytest.fixture(autouse=True)
 def auth_key_api():
     global auth_key
@@ -20,13 +20,23 @@ def time_delta(request):
     end_time = datetime.now()
     print(f"\nТест {request.function.__name__} длился: {end_time - start_time}")
 
-@pytest.mark.parametrize("pet_photo", ['images/P1040103.jpg', 'images/1.bmp', 'images/1px.jpg', 'images/10kX10k.jpg', 'images/cat1.gif', 'images/cat1.png'], ids=['image.jpg', 'image.bmp', '1px', '10kX10k', 'image.gif', 'image.png'])
+
+# параметризация - один тест на несколько тестовых данных
+@pytest.mark.parametrize("pet_photo",
+                         ['images/P1040103.jpg', 'images/1.bmp',
+                          'images/1px.jpg', 'images/10kX10k.jpg',
+                          'images/cat1.gif', 'images/cat1.png'],
+                         ids=['image.jpg', 'image.bmp', '1px',
+                              '10kX10k', 'image.gif', 'image.png'])
 def test_successful_add_photo(pet_photo):
     """Позитивные кейсы добавления фото"""
+
     # получаем полный путь изображения питомца и сохраняем в переменную pet_photo
     pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
-    # получаем ключ auth_key и список своих питомцев
+    # обращаемся к методу класса из файла api, передав ключ авторизации из фикстуры
+    # и получаем список своих питомцев
     _, my_pets, _ = pf.get_list_of_pets(auth_key, "my_pets")
+
     # если список не пустой, то пробуем обновить его имя, тип и возраст
     if len(my_pets['pets']) > 0:
         status, result, res = pf.add_photo_of_pet(auth_key, my_pets['pets'][0]['id'], pet_photo)
@@ -34,16 +44,20 @@ def test_successful_add_photo(pet_photo):
         assert status == 200
         return res
     else:
-        # если спиcок питомцев пустой, то выкидываем исключение с текстом об отсутствии своих питомцев
+        # если список питомцев пустой, то выкидываем исключение с текстом об отсутствии своих питомцев
         raise Exception("There is no my pets")
+
 
 @pytest.mark.parametrize("pet_photo", ['images/text.txt'], ids=['text.txt'])
 def test_unsuccessful_add_photo(pet_photo):
     """Негативные кейсы добавления фото"""
+
     # получаем полный путь изображения питомца и сохраняем в переменную pet_photo
     pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
-    # получаем ключ auth_key и список своих питомцев
+    # обращаемся к методу класса из файла api, передав ключ авторизации из фикстуры
+    # и получаем список своих питомцев
     _, my_pets, _ = pf.get_list_of_pets(auth_key, "my_pets")
+
     # если список не пустой, то пробуем обновить его имя, тип и возраст
     if len(my_pets['pets']) > 0:
         status, result, res = pf.add_photo_of_pet(auth_key, my_pets['pets'][0]['id'], pet_photo)
@@ -51,5 +65,5 @@ def test_unsuccessful_add_photo(pet_photo):
         assert status == 200
         return res
     else:
-        # если спиcок питомцев пустой, то выкидываем исключение с текстом об отсутствии своих питомцев
+        # если список питомцев пустой, то выкидываем исключение с текстом об отсутствии своих питомцев
         raise Exception("There is no my pets")

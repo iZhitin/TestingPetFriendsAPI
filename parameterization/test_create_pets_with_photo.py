@@ -4,7 +4,7 @@ from requirements import *
 pf = PetFriends()
 
 
-# получаем ключ авторизации
+# получаем ключ авторизации, доступный в каждом тесте
 @pytest.fixture(autouse=True)
 def auth_key_api():
     global auth_key
@@ -21,19 +21,31 @@ def time_delta(request):
     print(f"\nТест {request.function.__name__} длился: {end_time - start_time}")
 
 
+# параметризация - один тест на несколько тестовых данных
+# функция generate_string(n) генерирует строку длиной n
 @pytest.mark.parametrize("name"
-   , [generate_string(255), generate_string(1001), russian_chars(), russian_chars().upper(), chinese_chars(),
+   , [generate_string(255), generate_string(1001), russian_chars(),
+      russian_chars().upper(), chinese_chars(),
       special_chars(), '123']
-   , ids=['255 symbols', 'more than 1000 symbols', 'russian', 'RUSSIAN', 'chinese', 'specials', 'digit'])
+   , ids=['255 symbols', 'more than 1000 symbols', 'russian',
+          'RUSSIAN', 'chinese', 'specials', 'digit'])
 @pytest.mark.parametrize("animal_type"
-   , [generate_string(255), generate_string(1001), russian_chars(), russian_chars().upper(), chinese_chars(),
+   , [generate_string(255), generate_string(1001), russian_chars(),
+      russian_chars().upper(), chinese_chars(),
       special_chars(), '123']
-   , ids=['255 symbols', 'more than 1000 symbols', 'russian', 'RUSSIAN', 'chinese', 'specials', 'digit'])
+   , ids=['255 symbols', 'more than 1000 symbols', 'russian',
+          'RUSSIAN', 'chinese', 'specials', 'digit'])
 @pytest.mark.parametrize("age", ['1'], ids=['min'])
-@pytest.mark.parametrize("pet_photo", ['images/P1040103.jpg', 'images/1.bmp', 'images/1px.jpg', 'images/10kX10k.jpg', 'images/cat1.gif', 'images/cat1.png'], ids=['image.jpg', 'image.bmp', '1px', '10kX10k', 'image.gif', 'image.png'])
+@pytest.mark.parametrize("pet_photo",
+                         ['images/P1040103.jpg', 'images/1.bmp',
+                          'images/1px.jpg', 'images/10kX10k.jpg',
+                          'images/cat1.gif', 'images/cat1.png'],
+                         ids=['image.jpg', 'image.bmp', '1px',
+                              '10kX10k', 'image.gif', 'image.png'])
 def test_add_new_pet_positive(name, animal_type,
                            age, pet_photo):
-    """ Положительные тесты с валидными параметрами """
+    """Положительные тесты с валидными параметрами"""
+
     # получаем полный путь изображения питомца и сохраняем в переменную pet_photo
     pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
     # добавляем питомца
@@ -49,14 +61,16 @@ def test_add_new_pet_positive(name, animal_type,
 @pytest.mark.parametrize("name", [''], ids=['empty'])
 @pytest.mark.parametrize("animal_type", [''], ids=['empty'])
 @pytest.mark.parametrize("age",
-                        ['', '-1', '0', '100', '1.5', '2147483647', '2147483648', special_chars(), russian_chars(),
+                        ['', '-1', '0', '100', '1.5', '2147483647', '2147483648',
+                         special_chars(), russian_chars(),
                          russian_chars().upper(), chinese_chars()]
-   , ids=['empty', 'negative', 'zero', 'greater than max', 'float', 'int_max', 'int_max + 1', 'specials',
-          'russian', 'RUSSIAN', 'chinese'])
+   , ids=['empty', 'negative', 'zero', 'greater than max', 'float', 'int_max',
+          'int_max + 1', 'specials', 'russian', 'RUSSIAN', 'chinese'])
 @pytest.mark.parametrize("pet_photo", ['images/text.txt'], ids=['text.txt'])
 def test_add_new_pet_negative(name, animal_type,
                            age, pet_photo):
-    """ Отрицательные тесты с невалидными параметрами """
+    """Отрицательные тесты с невалидными параметрами"""
+
     # получаем полный путь изображения питомца и сохраняем в переменную pet_photo
     pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
     # добавляем питомца
